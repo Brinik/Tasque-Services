@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>dotnet-BackgroundService-E22449C8-9651-4778-A901-C4F3D2DD2566</UserSecretsId>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <RootNamespace>BackgroundService</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="MassTransit" Version="8.5.4" />
+        <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.4" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.10" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
+      <Content Include="..\Dockerfile">
+        <Link>Dockerfile</Link>
+      </Content>
+    </ItemGroup>
+</Project>
