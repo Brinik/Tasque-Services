@@ -32,9 +32,12 @@ namespace TasqueManager.Infrastructure.Repositories
         #endregion
 
         #region GetAll
-        public virtual IQueryable<T> GetAll(bool asNoTracking = false)
+        public virtual IQueryable<T> GetAll(
+            Func<T, bool>? predicate = null,
+            bool asNoTracking = false)
         {
-            return asNoTracking ? _entitySet.AsNoTracking() : _entitySet;
+            IQueryable<T> query = (predicate != null) ? _entitySet.Where((x) => predicate(x)) : _entitySet;
+            return asNoTracking ? query.AsNoTracking() : query;
         }
 
         public async Task<List<T>> GetAllAsync(CancellationToken cancellationToken, bool asNoTracking = false)

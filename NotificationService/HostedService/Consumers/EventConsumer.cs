@@ -16,11 +16,12 @@ namespace BackgroundService.Consumers
         {
             var messageId = context.MessageId?.ToString() ?? "unknown";
             var messageContent = context.Message.Content;
-
+            Console.WriteLine("Value: {0}", context.Message.Content);
             using (_logger.BeginScope("MessageId: {MessageId}", messageId))
             {
                 _logger.LogInformation(messageContent);
             }
+            await Task.Delay(TimeSpan.FromSeconds(2));
         }
     }
 }

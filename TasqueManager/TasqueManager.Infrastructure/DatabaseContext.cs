@@ -19,9 +19,6 @@ namespace TasqueManager.Infrastructure
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-/*            modelBuilder.Entity<Assignment>();*/
-
             modelBuilder.Entity<Assignment>().Property(c => c.Title).HasMaxLength(100);
             modelBuilder.Entity<Assignment>().Property(c => c.Description).HasMaxLength(100);
         }

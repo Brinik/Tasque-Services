@@ -1,11 +1,15 @@
 ﻿using AutoMapper;
+using MassTransit.NewIdProviders;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using System.Net.Http;
+using System.Threading;
 using TasqueManager.Abstractions.RepositoryAbstractions;
 using TasqueManager.Abstractions.ServiceAbstractions;
 using TasqueManager.Contracts.Assignment;
 using TasqueManager.Domain;
+using TasqueManager.WebHost.Settings;
 
 namespace TasqueManager.WebHost.Services
 {
@@ -13,24 +17,15 @@ namespace TasqueManager.WebHost.Services
     {
         private readonly IMapper _mapper;
         private readonly IAssignmentRepository _assignmentRepository;
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly HttpClient _httpClient; 
-        private readonly IMemoryCache _cache;
-        private readonly ILogger<AssignmentService> _logger;
+
+
 
         public AssignmentService(
             IMapper mapper,
-            IAssignmentRepository assignmentRepository,
-            IUnitOfWork unitOfWork,
-            IMemoryCache cache,
-            ILogger<AssignmentService> logger)
+            IAssignmentRepository assignmentRepository)
         {
             _mapper = mapper;
             _assignmentRepository = assignmentRepository;
-            _unitOfWork = unitOfWork;
-            _httpClient = new HttpClient();
-            _cache = cache;
-            _logger = logger;
         }
         /// <summary>
         /// Получить задачу.
@@ -39,7 +34,8 @@ namespace TasqueManager.WebHost.Services
         /// <returns> ДТО задачи. </returns>
         public async Task<AssignmentDto> GetByIdAsync(Guid id) 
         {
-            var assignment = await _assignmentRepository.GetAsync(id, CancellationToken.None);
+            var assignment = await _assignmentRepository.GetAsync(id, CancellationToken.None) ?? 
+                throw new KeyNotFoundException($"Task with id: {id} not found");
             return _mapper.Map<Assignment, AssignmentDto>(assignment);
         }
 
@@ -97,44 +93,6 @@ namespace TasqueManager.WebHost.Services
         {
             ICollection<Assignment> entities = await _assignmentRepository.GetPagedAsync(filterDto);
             return _mapper.Map<ICollection<Assignment>, ICollection<AssignmentDto>>(entities);
-        }
-
-        /// <summary>
-        /// Получить курс валют.
-        /// </summary>
-        public async Task<string> GetExchangeRateAsync() 
-        {
-            string cacheKey = $"ExchangeRate";
-            if (_cache.TryGetValue(cacheKey, out string? cachedRate) && cachedRate != null)
-            {
-                _logger.LogInformation("Exchange rate was retrieved from cache");
-                return cachedRate;
-            }
-            var freshRate = await FetchExchangeRate();
-
-            // Сохраняем полученные данные в кэш на 5 минут
-            var cacheOptions = new MemoryCacheEntryOptions()
-                .SetAbsoluteExpiration(TimeSpan.FromMinutes(5));
-
-            _cache.Set(cacheKey, freshRate, cacheOptions);
-
-            return freshRate;
-        }
-
-        private async Task<string> FetchExchangeRate() 
-        {
-            try
-            {
-                HttpResponseMessage response = await _httpClient.GetAsync("https://www.cbr-xml-daily.ru/daily_json.js");
-                response.EnsureSuccessStatusCode();
-                string Result = await response.Content.ReadAsStringAsync();
-                _logger.LogInformation("Exchange rate was fetched from external API");
-                return Result;
-            }
-            catch (HttpRequestException ex)
-            {
-                throw new Exception($"External API access failure: {ex.Message}", ex);
-            }
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using MassTransit;
 using TasqueManager.Abstractions.RepositoryAbstractions;
 using TasqueManager.Domain;
-using TasqueManager.Contracts;
+using Message;
 
 namespace TasqueManager.WebHost.Services
 {
@@ -50,7 +50,7 @@ namespace TasqueManager.WebHost.Services
             {
                 MaxDegreeOfParallelism = 5
             };
-            await Parallel.ForEachAsync(entities, options, async (entity, stoppingToken) =>
+            await Parallel.ForEachAsync(entities.Where(e => e.Status != AssignmentStatus.Overdue), options, async (entity, stoppingToken) =>
             {
                 if (entity != null && entity.DueDate.ToUniversalTime() < System.DateTime.UtcNow)
                 {

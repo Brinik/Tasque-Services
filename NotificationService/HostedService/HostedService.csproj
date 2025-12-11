@@ -1,10 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk.Worker">
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-        <UserSecretsId>dotnet-BackgroundService-E22449C8-9651-4778-A901-C4F3D2DD2566</UserSecretsId>
+        <UserSecretsId>795d32c8-9ef4-459b-9f9c-742b192fd5b0</UserSecretsId>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <RootNamespace>BackgroundService</RootNamespace>
     </PropertyGroup>

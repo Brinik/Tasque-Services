@@ -36,10 +36,5 @@ namespace TasqueManager.Abstractions.ServiceAbstractions
         /// <param name="filterDto"> ДТО фильтра. </param>
         /// <returns> Список задач. </returns>
         Task<ICollection<AssignmentDto>> GetPagedAsync(AssignmentFilterDto filterDto);
-        /// <summary>
-        /// Получить курс валют
-        /// </summary>
-        /// <returns>json с курсом</returns>
-        Task<string> GetExchangeRateAsync();
     }
 }

@@ -15,7 +15,7 @@ namespace TasqueManager.Abstractions.RepositoryAbstractions
         /// </summary>
         /// <param name="noTracking"> Вызвать с AsNoTracking.</param>
         /// <returns> IQueryable массив сущностей.</returns>
-        IQueryable<T> GetAll(bool noTracking = false);
+        IQueryable<T> GetAll(Func<T, bool>? predicate = null, bool asNoTracking = false);
 
         /// <summary>
         /// Запросить все сущности в базе.

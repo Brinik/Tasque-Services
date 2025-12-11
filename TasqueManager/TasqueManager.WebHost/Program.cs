@@ -1,11 +1,7 @@
-using Microsoft.AspNetCore.Hosting;
-using OpenTelemetry.Logs;
-using OpenTelemetry.Metrics;
 using TasqueManager.Domain;
 using TasqueManager.Infrastructure;
 using TasqueManager.WebHost;
 using Microsoft.EntityFrameworkCore;
-
 
 namespace WebHost
 {
@@ -29,7 +25,10 @@ namespace WebHost
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                    webBuilder.ConfigureAppConfiguration((hostingContext, config) => { });
+                    webBuilder.ConfigureAppConfiguration((hostingContext, config) => 
+                    {
+                        config.AddUserSecrets<Program>();
+                    });
                 });
 
         public static void Seed(IServiceProvider serviceProvider)

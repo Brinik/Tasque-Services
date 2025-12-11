@@ -20,15 +20,18 @@ namespace TasqueManager.WebHost
     {
         public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
+            _configuration = configuration;
         }
-        private IConfiguration Configuration { get; }
+        private IConfiguration _configuration { get; }
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<ForeignUrlStrings>(_configuration.GetSection("ForeignUrlStrings"));
             services.AddMemoryCache();
+            services.AddExceptionHandler<GlobalExceptionHandler>();
+            services.AddProblemDetails();
             InstallAutomapper(services);
-            AddServices(services, Configuration);
+            AddServices(services, _configuration);
             services.AddControllers()
                     .AddJsonOptions(options =>
             {
@@ -47,7 +50,7 @@ namespace TasqueManager.WebHost
             services.AddMassTransit(x => {
                 x.UsingRabbitMq((context, cfg) =>
                 {
-                    ConfigureRmq(cfg, Configuration);
+                    ConfigureRmq(cfg, _configuration);
                 });
             });
             services.AddOpenTelemetry()
@@ -55,12 +58,17 @@ namespace TasqueManager.WebHost
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation()
                 .AddPrometheusExporter());
+            services.AddRequestTimeouts(options =>
+            {
+                options.AddPolicy("ShortTimeout", TimeSpan.FromSeconds(5));
+                options.AddPolicy("LongTimeout", TimeSpan.FromSeconds(60));
+            });
         }
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseExceptionHandler();
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
                 app.UseSwagger();
                 app.UseSwaggerUI(c =>
                 {
@@ -75,7 +83,7 @@ namespace TasqueManager.WebHost
             app.UseOpenTelemetryPrometheusScrapingEndpoint();
             app.UseHttpsRedirection();
             app.UseRouting();
-            app.UseMiddleware<ExceptionHandlerMiddleware>();
+            app.UseRequestTimeouts();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
@@ -83,19 +91,15 @@ namespace TasqueManager.WebHost
         }
         private static IServiceCollection AddServices(IServiceCollection services, IConfiguration configuration)
         {
-            var applicationSettings = configuration.Get<ApplicationSettings>();
-            if (applicationSettings != null)
-            {
-                services.AddSingleton(applicationSettings)
-                         .AddDbContext<DatabaseContext>(optionsBuilder
-                => optionsBuilder.UseNpgsql(applicationSettings.ConnectionString));
-            }
-            else 
-            {
-                throw new NullReferenceException();
-            }
+            var applicationSettings = configuration.Get<ApplicationSettings>() ?? throw new NullReferenceException();
+
+            services.AddSingleton(applicationSettings)
+                        .AddDbContext<DatabaseContext>(optionsBuilder
+            => optionsBuilder.UseNpgsql(applicationSettings.ConnectionString));
+
             services.AddSingleton((IConfigurationRoot)configuration)
                     .AddTransient<IAssignmentService, AssignmentService>()
+                    .AddTransient<ICurrencyExchangeRateService, CurrencyExchangeService>()
                     .AddTransient<IAssignmentRepository, AssignmentRepository>()
                     .AddTransient<IUnitOfWork, UnitOfWork>()
                     .AddHostedService<DueDateCheckBS>();
@@ -126,17 +130,14 @@ namespace TasqueManager.WebHost
             var applicationSettings = configuration.Get<ApplicationSettings>() ??
                 throw new NullReferenceException();
 
-            var rmqSettings = applicationSettings.RmqSettings;
-            if (rmqSettings != null) 
-            {
-                configurator.Host(rmqSettings.Host,
+            var rmqSettings = applicationSettings.RmqSettings ?? throw new NullReferenceException();
+            configurator.Host(rmqSettings.Host,
                 rmqSettings.VHost,
                 h =>
                 {
                     h.Username(rmqSettings.Login);
                     h.Password(rmqSettings.Password);
                 });
-            }
         }
     }
 }

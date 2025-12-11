@@ -10,6 +10,7 @@ COPY ["TasqueManager.Abstractions/TasqueManager.Abstractions.csproj", "TasqueMan
 COPY ["TasqueManager.Contracts/TasqueManager.Contracts.csproj", "TasqueManager.Contracts/"]
 COPY ["TasqueManager.Domain/TasqueManager.Domain.csproj", "TasqueManager.Domain/"]
 COPY ["TasqueManager.Infrastructure/TasqueManager.Infrastructure.csproj", "TasqueManager.Infrastructure/"]
+COPY ["UnitTests/TasqueManager.Tests.csproj", "UnitTests/"]
 
 # Восстанавливаем зависимости
 RUN dotnet restore "TasqueManager.sln"

@@ -1,5 +1,6 @@
 networks:
-    tasque-manager-dev:
+    tasque_services:
+
 services:
     web_api:
         build:
@@ -15,17 +16,19 @@ services:
             - rabbitmq
         environment:
             - ASPNETCORE_ENVIRONMENT=Development
-            - ConnectionStrings__DefaultConnection=Host=postgres_db;Port=5432;Database=tasque-manager;Username=postgres;Password=FroggiT67$$;
-            - RabbitMQ__Host=rabbitmq
-            - RabbitMQ__Username=guest
-            - RabbitMQ__Password=guest
+            - ConnectionString=Host=postgres_db;Port=5432;Database=tasque-manager;Username=postgres;Password=FroggiT67$$
+            - RMQSettings__Host=rabbitmq
+            - RMQSettings__VHost=/
+            - RMQSettings__Login=guest
+            - RMQSettings__Password=guest
         labels:
           - "prometheus.enable=true"
           - "prometheus.job=web_api"
           - "prometheus.port=80"
           - "prometheus.path=/metrics"
         networks:
-            - tasque-manager-dev
+            - tasque_services
+
     consumer:
         build:
             context: ./NotificationService
@@ -40,39 +43,49 @@ services:
             - rabbitmq
         environment:
             - ASPNETCORE_ENVIRONMENT=Development
-            - ConnectionStrings__DefaultConnection=Host=postgres_db;Port=5432;Database=tasque-manager;Username=postgres;Password=FroggiT67$$;
-            - RabbitMQ__Host=rabbitmq
-            - RabbitMQ__Username=guest
-            - RabbitMQ__Password=guest
+            - ConnectionString=Host=postgres_db;Port=5432;Database=tasque-manager;Username=postgres;Password=FroggiT67$$
+            - RMQSettings__Host=rabbitmq
+            - RMQSettings__VHost=/
+            - RMQSettings__Login=guest
+            - RMQSettings__Password=guest
         networks:
-            - tasque-manager-dev
+            - tasque_services
+
     rabbitmq:
         image: rabbitmq:3-management-alpine
-        container_name: tasque-manager-rabbitmq
-        hostname: rabbitmq
+        container_name: rabbitmq
         ports:
-            - "5672:5672"   # AMQP protocol port
-            - "15672:15672" # Management UI port
+            - "5672:5672"
+            - "15672:15672"
         environment:
             - RABBITMQ_DEFAULT_USER=guest
             - RABBITMQ_DEFAULT_PASS=guest
         volumes:
             - rabbitmq-data:/var/lib/rabbitmq
         networks:
-            - tasque-manager-dev
+            - tasque_services
+
     postgres_db:
-        container_name: postgres
+        container_name: postgres_db
         image: postgres:latest
         environment:
-            POSTGRES_USER: postgres
-            POSTGRES_PASSWORD: FroggiT67$$
-            POSTGRES_DB: tasque-manager
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=FroggiT67$$
+            - POSTGRES_DB=tasque-manager
+            - PGDATA=/var/lib/postgresql/18/docker
+            - POSTGRES_HOST_AUTH_METHOD=trust
         ports:
             - "5432:5432"
-        networks:
-            - tasque-manager-dev
         volumes:
-            - postgres-data:/var/lib/postgresql/data
+            - postgres-data:/var/lib/postgresql
+        networks:
+            - tasque_services
+        healthcheck:
+          test: ["CMD-SHELL", "pg_isready -U postgres"]
+          interval: 5s
+          timeout: 5s
+          retries: 5
+
     prometheus:
         image: prom/prometheus:latest
         container_name: prometheus
@@ -84,11 +97,13 @@ services:
         volumes:
           - ./prometheus:/etc/prometheus
           - prometheus-data:/prometheus
-        networks:
-          - tasque-manager-dev
         depends_on:
-          - web_api
+          web_api:
+            condition: service_started
         restart: unless-stopped
+        networks:
+            - tasque_services
+
 volumes:
     postgres-data:
     rabbitmq-data:

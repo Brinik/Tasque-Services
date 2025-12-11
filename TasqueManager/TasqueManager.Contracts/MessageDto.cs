@@ -1,4 +1,4 @@
-﻿namespace TasqueManager.Contracts
+﻿namespace Message
 {
     public class MessageDto
     {
