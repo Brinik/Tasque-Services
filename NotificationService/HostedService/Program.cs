@@ -4,6 +4,7 @@ using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using RabbitMQ.Client.Exceptions;
 
 namespace BackgroundService
 {
@@ -73,7 +74,11 @@ namespace BackgroundService
         {
             var appSettings = configuration.Get<ApplicationSettings>() ?? throw new ArgumentNullException();
             var rmqSettings = appSettings.RmqSettings;
-
+            configurator.UseMessageRetry(r =>
+            {
+                r.Handle<BrokerUnreachableException>();
+                r.Exponential(20, TimeSpan.FromSeconds(5), TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(10));
+            });
             configurator.Host(rmqSettings.Host,
                 rmqSettings.VHost,
                 h =>
