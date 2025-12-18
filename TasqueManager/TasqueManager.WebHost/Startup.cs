@@ -100,8 +100,8 @@ namespace TasqueManager.WebHost
             services.AddSingleton((IConfigurationRoot)configuration)
                     .AddTransient<IAssignmentService, AssignmentService>()
                     .AddTransient<ICurrencyExchangeRateService, CurrencyExchangeService>()
-                    .AddTransient<IAssignmentRepository, AssignmentRepository>()
-                    .AddTransient<IUnitOfWork, UnitOfWork>()
+                    .AddScoped<IAssignmentRepository, AssignmentRepository>()
+                    .AddScoped<IUnitOfWork, UnitOfWork>()
                     .AddHostedService<DueDateCheckBS>();
             return services;
         }
