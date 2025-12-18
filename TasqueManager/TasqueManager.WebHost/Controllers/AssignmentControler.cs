@@ -30,16 +30,17 @@ namespace TasqueManager.WebHost.Controllers
             return Ok(_mapper.Map<Assignment>(assignment)); 
         }
 
-        [HttpPost("getList")]
-        public async Task<IActionResult> GetListAsync(AssignmentFilterModel filterModel)
+        [HttpGet("getFromQuery")]
+        public async Task<IActionResult> GetFromQueryAsync(
+            [FromQuery] AssignmentFilterModel filterModel)
         {
-            if (filterModel == null || (filterModel.ItemsPerPage != 0 & filterModel.Page <= 0)) 
+            if (filterModel == null || (filterModel.ItemsPerPage != 0 & filterModel.Page <= 0))
             {
                 return BadRequest();
             }
             var filterDto = _mapper.Map<AssignmentFilterModel, AssignmentFilterDto>(filterModel);
             return Ok(_mapper.Map<List<AssignmentModel>>(await _service.GetPagedAsync(filterDto)));
-        }
+        } 
 
         [HttpPost]
         public async Task<IActionResult> CreateAsync(CreatingAssignmentModel assignmentModel)

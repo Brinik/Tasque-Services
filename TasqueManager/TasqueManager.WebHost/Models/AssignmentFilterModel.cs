@@ -5,7 +5,7 @@ namespace TasqueManager.WebHost.Models
 {
     public class AssignmentFilterModel
     {
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public AssignmentStatus Status { get; set; }

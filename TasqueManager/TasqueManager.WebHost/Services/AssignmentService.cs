@@ -1,15 +1,8 @@
 ﻿using AutoMapper;
-using MassTransit.NewIdProviders;
-using Microsoft.Extensions.Caching.Hybrid;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Options;
-using System.Net.Http;
-using System.Threading;
 using TasqueManager.Abstractions.RepositoryAbstractions;
 using TasqueManager.Abstractions.ServiceAbstractions;
 using TasqueManager.Contracts.Assignment;
 using TasqueManager.Domain;
-using TasqueManager.WebHost.Settings;
 
 namespace TasqueManager.WebHost.Services
 {
